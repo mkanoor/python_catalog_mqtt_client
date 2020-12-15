@@ -61,7 +61,7 @@ class TowerApiWorker:
         params = dict(parse_qsl(url_info.query))
         page_number = 1
         while True:
-            response = await self.get_page(session, href_slug, params)
+            response = await self.get_page(session, url_info.path, params)
             if response["status"] != 200:
                 raise Exception(
                     "Get failed %s status %s body %s"
@@ -69,10 +69,7 @@ class TowerApiWorker:
                 )
 
             json_body = json.loads(response["body"])
-            if "page_prefix" in job:
-                page_prefix = job["page_prefix"]
-            else:
-                page_prefix = "page"
+            page_prefix = job.get("page_prefix", "page")
 
             page_name = os.path.join(url_info.path, page_prefix + str(page_number))
             await self.send_response(json_body, page_name, job)
@@ -152,7 +149,7 @@ class TowerApiWorker:
             key = rel["predicate"]
             val = rel["href_slug"]
             logger.debug(obj)
-            if obj[key]:
+            if obj.get(key, None):
                 new_job = {"href_slug": obj[val][1:], "method": "get"}
                 logger.debug(new_job)
                 await self.queue.put(new_job)
@@ -190,7 +187,7 @@ class TowerApiWorker:
         url_info = urlparse(url)
         params = dict(parse_qsl(url_info.query))
         while True:
-            response = await self.get_page(session, url, params)
+            response = await self.get_page(session, url_info.path, params)
             if response["status"] != 200:
                 raise Exception(
                     "GET failed %s status %s body %s"

@@ -5,38 +5,79 @@ import configparser
 class TestData:
     """ Test Data """
 
-    config=configparser.ConfigParser()
-    config['AUTH'] = {'x_rh_identity': '123',
-                      'username': 'fred',
-                      'password': 'secret'}
-    config['ANSIBLE_TOWER'] = {'url': "https://www.example.com",
-                               'token': 'chucky_cheese',
-                               'verify_ssl': 'True'}
+    config = configparser.ConfigParser()
+    config["AUTH"] = {"x_rh_identity": "123", "username": "fred", "password": "secret"}
+    config["ANSIBLE_TOWER"] = {
+        "url": "https://www.example.com",
+        "token": "chucky_cheese",
+        "verify_ssl": "True",
+    }
+    no_verify_config = configparser.ConfigParser()
+    no_verify_config["AUTH"] = {
+        "x_rh_identity": "123",
+        "username": "fred",
+        "password": "secret",
+    }
+    no_verify_config["ANSIBLE_TOWER"] = {
+        "url": "https://www.example.com",
+        "token": "chucky_cheese",
+        "verify_ssl": "False",
+    }
+
     JOB_TEMPLATE_ID_1 = 909
     JOB_TEMPLATE_ID_2 = 910
     JOB_TEMPLATE_ID_3 = 987
     ARTIFACTS_KEY_PREFIX = "expose_to_cloud_redhat_com_"
 
     DEFAULT_JOB_TEMPLATES_LIST_URL = "https://www.example.com/api/v2/job_templates"
-    JOB_TEMPLATES_LIST_URL = "https://www.example.com/api/v2/job_templates?page_size=1"
+    JOB_TEMPLATES_LIST_URL = "https://www.example.com/api/v2/job_templates?page_size=2"
     JOB_TEMPLATES_LIST_URL_PAGE_2 = (
-        "https://www.example.com/api/v2/job_templates?page=2&page_size=1"
+        "https://www.example.com/api/v2/job_templates?page=2&page_size=2"
+    )
+    SURVEY_URL = (
+        f"https://www.example.com/api/v2/job_templates/{JOB_TEMPLATE_ID_1}/survey_spec"
+    )
+    JOB_TEMPLATE_ID_1_URL = (
+        f"https://www.example.com/api/v2/job_templates/{JOB_TEMPLATE_ID_1}"
+    )
+    SURVEY_DATA = dict(name="fred", description="test", spec=[])
+
+    JOB_TEMPLATE_PAYLOAD_SINGLE_RELATED = dict(
+        href_slug=f"api/v2/job_templates/{JOB_TEMPLATE_ID_1}",
+        method="get",
+        fetch_all_pages="False",
+        page_prefix="my_prefix",
+        fetch_related=[dict(predicate="survey_spec", href_slug="survey_url")],
+    )
+    JOB_TEMPLATE_PAYLOAD_FETCH_RELATED = dict(
+        href_slug="api/v2/job_templates",
+        method="get",
+        fetch_all_pages="False",
+        params=dict(page_size=1),
+        page_prefix="my_prefix",
+        fetch_related=[dict(predicate="survey_spec", href_slug="survey_url")],
     )
     JOB_TEMPLATE_PAYLOAD_SINGLE_PAGE = dict(
         href_slug="api/v2/job_templates",
         method="get",
         fetch_all_pages="False",
         params=dict(page_size=1),
+        page_prefix="my_prefix",
     )
     JOB_TEMPLATE_PAYLOAD_ALL_PAGES = dict(
-        href_slug="api/v2/job_templates",
+        href_slug="api/v2/job_templates?page_size=2",
         method="get",
         fetch_all_pages="True",
-        params=dict(page_size=1),
+        apply_filter="results[].{id:id,name:name}",
     )
     JOB_TEMPLATE_COUNT = 3
     JOB_TEMPLATE_1 = dict(
-        id=JOB_TEMPLATE_ID_1, type="job_template", name="Fred Flintstone"
+        # Survey URL needs to have a leading slash
+        id=JOB_TEMPLATE_ID_1,
+        type="job_template",
+        name="Fred Flintstone",
+        survey_spec=True,
+        survey_url=f"/api/v2/job_templates/{JOB_TEMPLATE_ID_1}/survey_spec",
     )
     JOB_TEMPLATE_2 = dict(
         id=JOB_TEMPLATE_ID_2, type="job_template", name="Pebbles Flintstone"
@@ -45,6 +86,7 @@ class TestData:
         id=JOB_TEMPLATE_ID_3, type="job_template", name="Wilma Flintstone"
     )
 
+    JOB_TEMPLATE_SINGLE_RESPONSE = JOB_TEMPLATE_1
     JOB_TEMPLATE_RESPONSE = dict(
         count=JOB_TEMPLATE_COUNT,
         next=None,
@@ -69,6 +111,7 @@ class TestData:
         params=dict(name="Fred"),
     )
 
+    INVALID_PAYLOAD = dict(href_slug="api/v2/job_templates/909/launch", method="bad",)
     JOB_ID_1 = 500
     JOB_STATUS_RUNNING = "running"
     JOB_STATUS_FAILED = "failed"
@@ -115,17 +158,30 @@ class TestData:
         artifacts=JOB_ARTIFACTS_HUGE,
     )
     JOB_MONITOR_URL = f"https://www.example.com/api/v2/jobs/{JOB_ID_1}"
+    JOB_FILTER = {
+        "url": "url",
+        "id": "id",
+        "status": "status",
+        "playbook": "playbook",
+        "artifacts": "artifacts",
+    }
+    JOB_GET_PAYLOAD = dict(
+        href_slug=f"/api/v2/jobs/{JOB_ID_1}",
+        method="get",
+        params={},
+        apply_filter=JOB_FILTER,
+    )
     JOB_MONITOR_PAYLOAD = dict(
         href_slug=f"/api/v2/jobs/{JOB_ID_1}",
         method="monitor",
         params={},
         refresh_interval_seconds=1,
-        apply_filter="{url:url, id:id, status:status, playbook:playbook, artifacts:artifacts}",
+        apply_filter=JOB_FILTER,
     )
     JOB_TEMPLATE_LAUNCH_PAYLOAD = dict(
         href_slug="api/v2/job_templates/909/launch",
         method="launch",
         params={},
         refresh_interval_seconds=1,
-        apply_filter="{url:url, id:id, status:status, playbook:playbook, artifacts:artifacts}",
+        apply_filter=JOB_FILTER,
     )
