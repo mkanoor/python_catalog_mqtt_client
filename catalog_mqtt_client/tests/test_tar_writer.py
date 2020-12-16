@@ -28,23 +28,22 @@ async def test_flush():
     result = {"name": "Fred Flintstone"}
     await writer.write(json.dumps(result), "file1")
     with aioresponses() as mocked:
-        mocked.post(
-            TestData.UPLOAD_URL,
-            status=200,
-            body=json.dumps({'name': 'Fred'})
-        )
-        res = await writer.flush()
+        mocked.post(TestData.UPLOAD_URL, status=200, body=json.dumps({"name": "Fred"}))
+        await writer.flush()
 
     assert (c_task.data["state"]) == "completed"
     assert (c_task.data["status"]) == "ok"
     writer.cleanup()
+
 
 @pytest.mark.asyncio
 async def test_flush_errors():
     """ Test Flush Errors Method """
     c_task = SimpleCatalogTask()
     dirname, tgzfile = prep_test()
-    writer = tar_writer.TarWriter(TestData.config, c_task, TestData.UPLOAD_URL, dirname, tgzfile)
+    writer = tar_writer.TarWriter(
+        TestData.config, c_task, TestData.UPLOAD_URL, dirname, tgzfile
+    )
     await writer.flush_errors("kaboom")
     writer.cleanup()
 
@@ -56,27 +55,34 @@ def test_cleanup():
     """ Test Cleanup """
     c_task = SimpleCatalogTask()
     dirname, tgzfile = prep_test()
-    writer = tar_writer.TarWriter(TestData.config, c_task, TestData.UPLOAD_URL, dirname, tgzfile)
+    writer = tar_writer.TarWriter(
+        TestData.config, c_task, TestData.UPLOAD_URL, dirname, tgzfile
+    )
     writer.cleanup()
-    assert(os.path.exists(dirname)) == False
-    assert(os.path.exists(tgzfile)) == False
+    assert not os.path.exists(dirname)
+    assert not os.path.exists(tgzfile)
+
 
 @pytest.mark.asyncio
 async def test_write():
     """ Test Write Method"""
     c_task = SimpleCatalogTask()
     dirname, tgzfile = prep_test()
-    writer = tar_writer.TarWriter(TestData.no_verify_config, c_task, TestData.UPLOAD_URL, dirname, tgzfile)
+    writer = tar_writer.TarWriter(
+        TestData.no_verify_config, c_task, TestData.UPLOAD_URL, dirname, tgzfile
+    )
     result = {"name": "Fred Flintstone"}
     await writer.write(json.dumps(result), "file1")
-    assert (os.path.exists(dirname+"/file1")) == True
+    assert os.path.exists(dirname + "/file1")
     writer.cleanup()
 
+
 def prep_test():
+    """ Create temporary directory and filename """
     dirname = tempfile.TemporaryDirectory(prefix="test").name
     tgzfile = tempfile.NamedTemporaryFile(prefix="test", suffix=".tgz").name
     if not os.path.exists(dirname):
         os.makedirs(dirname)
-    with open(dirname+"/demo.txt",'w') as fh:
-        fh.write("Hello World\n")
+    with open(dirname + "/demo.txt", "w") as file_handle:
+        file_handle.write("Hello World\n")
     return dirname, tgzfile
