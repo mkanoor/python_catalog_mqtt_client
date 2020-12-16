@@ -6,7 +6,7 @@ class TestData:
     """ Test Data """
 
     config = configparser.ConfigParser()
-    config["AUTH"] = {"x_rh_identity": "123", "username": "fred", "password": "secret"}
+    config["AUTH"] = {"x_rh_identity": "123", "username": "fred", "password": "secret", "verify_ssl": "True"}
     config["ANSIBLE_TOWER"] = {
         "url": "https://www.example.com",
         "token": "chucky_cheese",
@@ -17,6 +17,7 @@ class TestData:
         "x_rh_identity": "123",
         "username": "fred",
         "password": "secret",
+        "verify_ssl": "False",
     }
     no_verify_config["ANSIBLE_TOWER"] = {
         "url": "https://www.example.com",
@@ -185,3 +186,4 @@ class TestData:
         refresh_interval_seconds=1,
         apply_filter=JOB_FILTER,
     )
+    UPLOAD_URL="http://www.example.com/upload/catalog"

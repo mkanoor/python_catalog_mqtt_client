@@ -21,12 +21,20 @@ class TarWriter:
 
     UPLOAD_CONTENT_TYPE = "application/vnd.redhat.topological-inventory.filename+tgz"
 
-    def __init__(self, config, c_task, upload_url):
+    def __init__(self, config, c_task, upload_url, dirname=None, tgzfile=None):
         self.config = config
         self.upload_url = upload_url
         self.c_task = c_task
-        self.dirname = tempfile.TemporaryDirectory(prefix="catalog").name
-        self.tgzfile = tempfile.NamedTemporaryFile(prefix="catalog", suffix=".tgz").name
+        if dirname:
+           self.dirname = dirname
+        else:
+           self.dirname = tempfile.TemporaryDirectory(prefix="catalog").name
+
+        if tgzfile:
+           self.tgzfile = tgzfile
+        else:
+           self.tgzfile = tempfile.NamedTemporaryFile(prefix="catalog", suffix=".tgz").name
+
         self.initialize_ssl()
 
     async def write(self, data, filename):
@@ -106,5 +114,8 @@ class TarWriter:
 
     def cleanup(self):
         """ Clean the Temporary directory where we were collecting the files """
-        os.remove(self.tgzfile)
-        shutil.rmtree(self.dirname)
+        if os.path.exists(self.tgzfile):
+           os.remove(self.tgzfile)
+
+        if os.path.exists(self.dirname):
+           shutil.rmtree(self.dirname)
