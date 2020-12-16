@@ -16,6 +16,7 @@ py==1.10.0
 pyparsing==2.4.7
 pytest==6.2.0
 pytest-asyncio==0.14.0
+pytest-mock==3.4.0
 toml==0.10.2
 typing-extensions==3.7.4.3
 yarl==1.6.3
